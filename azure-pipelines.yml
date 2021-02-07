@@ -7,11 +7,49 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest' # examples of other options: 'macOS-10.15', 'windows-2019'
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: restore
+    projects: '**/*.csproj'
+    feedsToUse: config
+    nugetConfigPath: Nuget.config
+    #externalFeedCredentials: '<name of the NuGet service connection>'
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: build
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)' # update this to match your need
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: '**/Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
+# do this after your test run
+- script: dotnet test <test-prject> --logger trx --collect "Code coverage"
+- task: PublishTestResults@2
+  condition: succeededOrFailed@2
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
+# do this after you've built your app, near the end of your pipeline in most cases
+# for example do this before you deploy to an Azure Web App on windows
+- task: DotNetCoreCLI@2
+  inputs:
+    command: publish
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: True
+# this code takes all the files in $(Build.ArtifactStagingDirectory) and uploads them as an artifact of your build
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'MyWebSiteName'
+#- script: dotnet build --configuration $(buildConfiguration)
+#  displayName: 'dotnet build $(buildConfiguration)'
