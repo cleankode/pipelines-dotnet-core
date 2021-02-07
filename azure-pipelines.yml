@@ -18,8 +18,8 @@ steps:
   inputs:
     command: restore
     projects: '**/*.csproj'
-    feedsToUse: config
-    nugetConfigPath: Nuget.config
+    #feedsToUse: config
+    #nugetConfigPath: Nuget.config
     #externalFeedCredentials: '<name of the NuGet service connection>'
 - task: DotNetCoreCLI@2
   displayName: Build
@@ -34,11 +34,11 @@ steps:
     arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
 # do this after your test run
 #- script: dotnet test <test-prject> --logger trx --collect "Code coverage"
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testRunner: VSTest
-    testResultsFiles: '**/*.trx'
+#- task: PublishTestResults@2
+#  condition: succeededOrFailed()
+#  inputs:
+#    testRunner: VSTest
+#    testResultsFiles: '**/*.trx'
 # do this after you've built your app, near the end of your pipeline in most cases
 # for example do this before you deploy to an Azure Web App on windows
 - task: DotNetCoreCLI@2
