@@ -35,7 +35,7 @@ steps:
 # do this after your test run
 - script: dotnet test <test-prject> --logger trx --collect "Code coverage"
 - task: PublishTestResults@2
-  condition: succeededOrFailed@2
+  condition: succeededOrFailed()
   inputs:
     testRunner: VSTest
     testResultsFiles: '**/*.trx'
